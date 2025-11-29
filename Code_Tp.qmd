@@ -1,0 +1,162 @@
+---
+title: "TP_landscape"
+author: "Groupe 10"
+editor: visual
+theme: zephyr
+date: "11/17/2025"
+toc : true
+format:
+  html:
+    fig-width: 8
+    fig-height: 4
+    code-fold: False
+    number-sections: true
+    embed-resources: true
+    standalone: true
+---
+```{=html}
+<style>
+body {
+  text-align: justify;
+}
+</style>
+```
+
+## Package
+
+```{r warning=FALSE, message=FALSE}
+setwd("~/Unif/MASTER 2/landscape/tp1")
+library(dplyr)
+#library(stringr)
+library(tidyverse)
+library(tidyr)
+#library(purrr)
+library(readxl)
+library(sf)
+library(terra)
+#library(stringr)
+#library(leaflet)
+library(readr)
+#library(htmltools)
+#library(utils)
+library(httr)
+library(ncdf4)
+library(raster)
+library(ggspatial)
+library(foreign)
+library(spdep)
+#library(shiny)
+library(landscapemetrics)
+```
+
+```{r warning=FALSE, message=FALSE}
+url_base <- "https://raw.githubusercontent.com/Mageratucl/landscape/main/"
+shapefiles <- c("239_shp", "516_shp", "213_shp", "521_shp",
+                "219_shp", "588_shp", "465_shp", "404_shp",
+                "quadrillage_beaver")
+
+tmp_dir <- tempdir()
+shp_list <- list()
+
+for(name in shapefiles) {
+  files <- paste0(name, c(".shp", ".shx", ".dbf", ".prj", ".cpg"))
+  for(file in files) {
+    download.file(
+      url = paste0(url_base, file),
+      destfile = file.path(tmp_dir, file),
+      mode = "wb"
+    )
+  }
+  shp_path <- file.path(tmp_dir, paste0(name, ".shp"))
+  shp_list[[name]] <- st_read(shp_path, quiet = TRUE)
+}
+
+
+
+shp_239 <- shp_list[["239_shp"]]
+shp_516 <- shp_list[["516_shp"]]
+shp_213 <- shp_list[["213_shp"]]
+shp_521 <- shp_list[["521_shp"]]
+shp_219 <- shp_list[["219_shp"]]
+shp_588 <- shp_list[["588_shp"]]
+shp_465 <- shp_list[["465_shp"]]
+shp_404 <- shp_list[["404_shp"]]
+quadrillage_beaver <- shp_list[["quadrillage_beaver"]]
+
+```
+
+```{r warning=FALSE, message=FALSE}
+#quadrillage_beaver = st_read("tp1/output/quadrillage_beaver.shp")
+```
+
+```{r warning=FALSE, message=FALSE}
+names(quadrillage_beaver)
+ggplot(quadrillage_beaver) +
+  geom_sf(aes(fill = factor(Presence))) +
+  scale_fill_manual(values = c("0" = "palegreen", "1" = "red"),
+                    name = "Présence") +
+  labs(title = "Beaver distribution in belgium") +
+  theme_minimal()
+``` 
+ 
+#I de moran (exo2) 
+```{r warning=FALSE, message=FALSE}
+nb <- poly2nb(quadrillage_beaver)
+lw <- nb2listw(nb, style = "W")
+
+moran_result <- moran.test(quadrillage_beaver$Presence, lw)
+
+# Afficher le résultat
+print(moran_result)
+```
+#Landscape metrics
+
+```{r warning=FALSE, message=FALSE}
+#setwd("~/Unif/MASTER 2/landscape/tp1")
+#shp_213 <- vect("tp1/output/213_shp.shp")
+#shp_219 <- vect("tp1/output/219_shp.shp")
+#shp_239 <- vect("tp1/output/239_shp.shp")
+#shp_404 <- vect("tp1/output/404_shp.shp")
+#shp_465 <- vect("tp1/output/465_shp.shp")
+#shp_516 <- vect("tp1/output/516_shp.shp")
+#shp_521 <- vect("tp1/output/521_shp.shp")
+#shp_588 <- vect("tp1/output/588_shp.shp")
+
+r213 <- rasterize(shp_213, rast(shp_213, resolution = 25), field = "CODE_18")
+r213_1 <- as.factor(r213)
+par(mfrow = c(2, 1))
+plot(r213_1)
+plot(r213)
+
+r219 <- rasterize(shp_219, rast(shp_219, resolution = 25), field = "CODE_18")
+r239 <- rasterize(shp_239, rast(shp_239, resolution = 25), field = "CODE_18")
+r404 <- rasterize(shp_404, rast(shp_404, resolution = 25), field = "CODE_18")
+r465 <- rasterize(shp_465, rast(shp_465, resolution = 25), field = "CODE_18")
+r516 <- rasterize(shp_516, rast(shp_516, resolution = 25), field = "CODE_18")
+r521 <- rasterize(shp_521, rast(shp_521, resolution = 25), field = "CODE_18")
+r588 <- rasterize(shp_588, rast(shp_588, resolution = 25), field = "CODE_18")
+
+
+par(mfrow = c(2, 3))
+plot(r213, main = "213")
+plot(r219, main = "219")
+plot(r239, main = "239")
+plot(r404, main = "404")
+plot(r465, main = "465")
+plot(r516, main = "516")
+
+```
+
+### Question 11)
+- proportion de chaque classe (class_area, pland)
+- fragmentation (edge_density, patch_density)
+- connectivité ou forme (shape_index)
+
+```{r warning=FALSE, message=FALSE}
+library(landscapemetrics)
+
+list_lsm()
+#proportion de chaque classe
+lsm_p_area(r213)
+```
+
