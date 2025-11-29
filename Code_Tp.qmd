@@ -148,9 +148,6 @@ plot(r516, main = "516")
 ```
 
 ### Question 11)
-- proportion de chaque classe (class_area, pland)
-- fragmentation (edge_density, patch_density)
-- connectivité ou forme (shape_index)
 
 ```{r warning=FALSE, message=FALSE}
 library(landscapemetrics)
@@ -159,4 +156,5 @@ list_lsm()
 #proportion de chaque classe
 lsm_p_area(r213)
 ```
+
 
